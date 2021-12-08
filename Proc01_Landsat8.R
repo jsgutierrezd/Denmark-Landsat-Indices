@@ -37,7 +37,7 @@ all <- lapply(files,function(x){
   stack(x)
 })
 
-all
+all*0.0001
 
 # 4) Creating functions to calculate spectral indices
 
@@ -82,12 +82,21 @@ BSI
 
 # 5.3) Tasseled cap transformation
 TC <- stack()
+all <- lapply(all,"*",0.0001)
 for(i in 1:length(all)){
   temp <- clusterR(stack(all[[i]]), 
                    fun=tasscap_oli)
   TC <- stack(TC,temp)
 }
 TC
+# Layer 1 - Brightness.
+# Layer 2 - Greenness.
+# Layer 3 - Wetness.
+
+# 6) Exporting results
+writeRaster(NDVI,"NDVI2014-2020.tif")
+writeRaster(BSI,"BSI2014-2020.tif")
+writeRaster(TC,"TC_L8_2014-2020.tif")
 
 endCluster()
 
