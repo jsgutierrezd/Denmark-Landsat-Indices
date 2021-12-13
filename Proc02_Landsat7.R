@@ -1,10 +1,11 @@
+
 #=========================================================================================
-# Proc 01. Spectral indices generation for a yearly-series Landsat 7 images (2000- 2013)
+# Proc 02. Spectral indices generation for a yearly-series Landsat 7 images (2000- 2013)
 # Author: Sebastian Gutierrez
 # Data: December 06 2021
 # PhD student Aarhus University
 #=========================================================================================
-
+rm(list = ls())
 # 1) Set working directory
 setwd("~/AARHUS_PhD/DSMactivities/1_SOCseq/INPUTS/RASTER/Denmark-Landsat-Indices")
 
@@ -25,6 +26,7 @@ lapply(pckg,usePackage)
 
 rm(pckg)
 rm(usePackage)
+
 
 # 3) Read Landsat 8 multi-band images from 2014 to 2020
 
@@ -103,3 +105,7 @@ writeRaster(TC,"TC_L8_2014-2020.tif")
 endCluster()
 
 print(Sys.time() - start)
+
+
+
+

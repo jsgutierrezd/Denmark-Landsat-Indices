@@ -5,7 +5,7 @@
 # Data: December 06 2021
 # PhD student Aarhus University
 #=========================================================================================
-
+rm(list = ls())
 # 1) Set working directory
 setwd("~/AARHUS_PhD/DSMactivities/1_SOCseq/INPUTS/RASTER/Denmark-Landsat-Indices")
 
