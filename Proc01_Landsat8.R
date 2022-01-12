@@ -6,11 +6,12 @@
 # PhD student Aarhus University
 #=========================================================================================
 rm(list = ls())
-# 1) Set working directory
+
+# 1) Set working directory ------------------------------------------------
 setwd("~/AARHUS_PhD/DSMactivities/1_SOCseq/INPUTS/RASTER/Denmark-Landsat-Indices")
 
-# 2) Load libraries
 
+# 2) Load libraries -------------------------------------------------------
 pckg <- c('raster',     
           'parallel',
           'RStoolbox',
@@ -27,7 +28,8 @@ lapply(pckg,usePackage)
 rm(pckg)
 rm(usePackage)
 
-# 3) Read Landsat 8 multi-band images from 2014 to 2020
+
+# 3) Read Landsat 8 multi-band images from 2014 to 2020 -------------------
 
 files <- list.files("O:/Tech_AGRO/Jord/Sebastian/LANDSAT8_DK/",
                              pattern = "tiff$|tif$",
@@ -37,24 +39,26 @@ all <- lapply(files,function(x){
   stack(x)
 })
 
-all*0.0001
 
-# 4) Creating functions to calculate spectral indices
+
+# 4) Creating functions to calculate spectral indices ---------------------
 
 # 4.1) NDVI
 ndvi <- function(x){
-  ((x[[5]]*0.0001)-(x[[4]]*0.0001))/
-    ((x[[5]]*0.0001)+(x[[4]]*0.0001))
+  ((x[[5]])-(x[[4]]))/
+    ((x[[5]])+(x[[4]]))
 }
 
 # 4.2) BSI
 #BSI = (SWIR2+R)−(NIR+B)/(SWIR2+R)+(NIR+B)
-bsi <- function(x){
-  ((x[[7]]*0.0001)+(x[[4]]*0.0001))-((x[[5]]*0.0001)+(x[[2]]*0.0001))/
-    ((x[[7]]*0.0001)+(x[[4]]*0.0001))+((x[[5]]*0.0001)+(x[[2]]*0.0001))
-  }
+# bsi <- function(x){
+#   ((x[[7]])+(x[[4]]))-((x[[5]])+(x[[2]]))/
+#     ((x[[7]])+(x[[4]]))+((x[[5]])+(x[[2]]))
+#   }
 
-# 5) Generating spectral indices for the list of images
+
+# 5) Generating spectral indices for the list of images -------------------
+
 cores <- detectCores()-3
 beginCluster(cores)
 
@@ -71,32 +75,22 @@ for(i in 1:length(all)){
 }
 NDVI
 
-# 5.2) BSI
-BSI <- stack()
-for(i in 1:length(all)){
-  temp <- clusterR(all[[i]], 
-                   fun=bsi)
-  BSI <- stack(BSI,temp)
-}
-BSI
+# # 5.2) BSI
+# BSI <- stack()
+# for(i in 1:length(all)){
+#   temp <- clusterR(all[[i]], 
+#                    fun=bsi)
+#   BSI <- stack(BSI,temp)
+# }
+# BSI
 
-# 5.3) Tasseled cap transformation
-TC <- stack()
-all <- lapply(all,"*",0.0001)
-for(i in 1:length(all)){
-  temp <- clusterR(stack(all[[i]]), 
-                   fun=tasscap_oli)
-  TC <- stack(TC,temp)
-}
-TC
-# Layer 1 - Brightness.
-# Layer 2 - Greenness.
-# Layer 3 - Wetness.
 
-# 6) Exporting results
-writeRaster(NDVI,"NDVI2014-2020.tif")
-writeRaster(BSI,"BSI2014-2020.tif")
-writeRaster(TC,"TC_L8_2014-2020.tif")
+
+
+# 6) Exporting results ----------------------------------------------------
+
+writeRaster(NDVI,"NDVI2014-2020.tif",overwrite=T)
+# writeRaster(BSI,"BSI2014-2020.tif")
 
 endCluster()
 
