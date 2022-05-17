@@ -27,7 +27,9 @@ pckg <- c('raster',
           'readr',
           'sf',
           'doParallel',
-          'trend'
+          'trend',
+          'rgdal',
+          'terra'
 )
 
 usePackage <- function(p) {
@@ -66,31 +68,44 @@ points$slope_class <- ifelse(points$sens_slope<0&points$mk_pvalue>0.1,
 
 # 5) LULC changes 2005-2020 -----------------------------------------------
 
-points$lu_2005 <- factor(points$lu_2005)
-points$lu_2020 <- factor(points$lu_2020)
+points$lu_2005 <- factor(round(points$lu_2005,0))
+points$lu_2020 <- factor(round(points$lu_2020,0))
 levels(points$lu_2005) <- c("Settlement","WetlandPermanent","Woodland","ChristmasTrees","Cropland",
                             "Grasslands","WetlandPeriodic","Unclassified","OtherLandUse","Sea")
 levels(points$lu_2020) <- c("Settlement","WetlandPermanent","Woodland","ChristmasTrees","Cropland",
                             "Grasslands","WetlandPeriodic","Unclassified","OtherLandUse","Sea")
-
+head(points)
 points$lu_0520 <- paste0(points$lu_2005,"_",points$lu_2020)
 
-write.csv(table(points$lu_0520,points$slope_class),"ContTableL7L8_20052018.csv")
+write.csv(table(points$lu_0520,points$slope_class),"ContTableL7L8_20052020.csv")
 
 
+as.factor(points$slope_class)
+
+# 6) Rasterize attributes -------------------------------------------------
+points_sp <- vect("PointsDef.shp")
 df <- points
-df = st_sf(df, sf_column_name = "geometry")
-df <- as(df, "Spatial")
+df <- vect(df, geom=c("x", "y"), crs=crs(points_sp))
 
-empty_raster<-raster("demdetrend.tif")*0
+empty_raster<-rast("demdetrend.tif")*0
 
-# Replace Na values for zero values
-df@data[is.na(df@data)] <- 0
+# Replace Na values for zero values in the column to be rasterized
+df$slope_class[is.na(df$slope_class)] <- 0
 
-# Points to Raster
+
+# Points to Raster slope classification
 df$slope_class <- as.numeric(as.factor(df$slope_class))
+summary(df$slope_class)
 df_map<-rasterize(df, empty_raster ,df$slope_class, updateValue='all')
 df_map
 plot(df_map)
-writeRaster(df_map,"SensSlopeClassL7L8",format="GTiff",overwrite=TRUE)
+terra::writeRaster(df_map,"SensSlopeClassL7L8.tif",overwrite=TRUE)
 
+
+# Points to Raster Slope value
+df$sens_slope <- as.numeric(df$sens_slope)
+summary(df$sens_slope)
+df_map<-rasterize(df, empty_raster ,df$sens_slope, updateValue='all')
+df_map
+plot(df_map)
+terra::writeRaster(df_map,"SensSlopeL7L8.tif",overwrite=TRUE)

@@ -16,7 +16,8 @@ setwd("~/AARHUS_PhD/DSMactivities/1_SOCseq/INPUTS/RASTER/Denmark-Landsat-Indices
 pckg <- c('raster',     
           'parallel',
           'RStoolbox',
-          'nightmares'
+          'nightmares',
+          'terra'
 )
 
 usePackage <- function(p) {
@@ -30,36 +31,41 @@ rm(pckg)
 rm(usePackage)
 
 
-# 3) Loading NDVI 2000-2013 -----------------------------------------------
+# 3) Load layers ----------------------------------------------------------
 
-l00.13 <- stack("NDVI2000_2013.tif")
+all <- list.files("O:/Tech_AGRO/Jord/Sebastian/NDVI1985_2021/",
+                  pattern = "tiff$|tif$",
+                  full.names = TRUE
+)
 
-
-# 4) Loading NDVI 2014-2020 -----------------------------------------------
-
-l14.20 <- stack("NDVI2014-2020.tif")
-
-# 5) Loading limit -----------------------------------------------
-lim <- rgdal::readOGR("C:/Users/au704633/OneDrive - Aarhus Universitet/Documents/AARHUS_PhD/DSMactivities/1_SOCseq/INPUTS/SHP/LIMIT/LIMIT.shp")
-
-
-# 6) Cropping and masking by limit ----------------------------------------
-
-l00.13 <- crop(l00.13,lim)
-l00.13 <- mask(l00.13,lim)
-
-l14.20 <- crop(l14.20,lim)
-l14.20 <- mask(l14.20,lim)
+all <- lapply(all[21:36],function(x){
+  rast(x)
+})
 
 
-# 7) Stacking NDVI time-series --------------------------------------------
-
-l14.20 <- resample(l14.20,l00.13)
-l00.20 <- stack(l00.13,l14.20)
-names(l00.20) <- paste0("NDVI_",2000:2020)
 
 
-# 8) Saving raster stack NDVI annually time-series 2000-2020 --------------
+# 4) Median NDVI 2005-2020 ------------------------------------------------
 
-writeRaster(l00.20,"NDVI2000-2020.tif",overwrite=T)
-saveRDS(names(l00.20),"NamesNDVI2000-2020.rds")
+# 
+# Each raster file (.tif) contains five raster layers:
+#   
+# Annual median of NDVI
+# Annual mean of NDVI
+# Annual standard deviation of NDVI
+# Annual 10th percentile of NDVI
+# Annual 90th percentile of NDVI
+
+# NDVI median
+NDVImed <- rast()
+for (i in 1:16) {
+  tmp <- all[[i]][[1]]
+  NDVImed <- c(NDVImed,tmp)
+}
+
+names(NDVImed) <- paste0("NDVI_",2005:2020)
+
+# 5) Saving raster stack NDVI annually time-series 2005-2020 --------------
+writeRaster(NDVImed,"NDVImed2005_2020.tif",overwrite=T)
+# writeRaster(NDVImed,"NDVI2000-2020.tif",overwrite=T)
+saveRDS(names(NDVImed) ,"NamesNDVImed2005_2020.rds")

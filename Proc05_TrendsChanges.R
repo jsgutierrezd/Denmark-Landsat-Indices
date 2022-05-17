@@ -46,12 +46,12 @@ points <- readRDS("PointsNDVI_LULC.rds")
 points <- as.data.frame(points)
 
 # 4) NA counting (2005-2020)----------------------------------------------------------
-points <- points[,-c(1:6,21,22)]
-points <- points[,-c(1:6)]
-points$values <- rowSums(!is.na(points[,1:14]))
+names(points)
+points <- points[,-c(1,4,21)]
+points$values <- rowSums(!is.na(points[,3:18]))
 names(points)
 head(points)
-points <- points[,-c(1:6)]
+
 
 # 5) Mk test y Sen´s slope batch functions -------------------------------------------------
 
@@ -59,28 +59,28 @@ points <- points[,-c(1:6)]
 
 mk.batch <- function(data,row,values) {
   ifelse(values>=3,
-         c(trend::mk.test(na.omit(unlist(c(data[row,-c(15:20)])))))$p.value,
+         c(trend::mk.test(na.omit(unlist(c(data[row,-c(1,2,19:21)])))))$p.value,
          NA)
   }
 
 # Function to compute the Sen´s slope for linear rate of change
 sens.batch <-  function(data,row,values) {
   ifelse(values>=3,
-         c(trend::sens.slope(na.omit(unlist(c(data[row,-c(15:20)])))))$estimates,
+         c(trend::sens.slope(na.omit(unlist(c(data[row,-c(1,2,19:21)])))))$estimates,
          NA)
   }
 
 # Function to compute the Sen´s slope confidence interval
 sens.batch.ci.low <-  function(data,row,values) {
   ifelse(values>=3,
-         c(trend::sens.slope(na.omit(unlist(c(data[row,-c(15:20)])))))$conf.int[1],
+         c(trend::sens.slope(na.omit(unlist(c(data[row,-c(1,2,19:21)])))))$conf.int[1],
          NA)
   }
 
 # Function to compute the Sen´s slope confidence interval
 sens.batch.ci.high <-  function(data,row,values) {
   ifelse(values>=3,
-         c(trend::sens.slope(na.omit(unlist(c(data[row,-c(15:20)])))))$conf.int[2],
+         c(trend::sens.slope(na.omit(unlist(c(data[row,-c(1,2,19:21)])))))$conf.int[2],
          NA)
   }
 
